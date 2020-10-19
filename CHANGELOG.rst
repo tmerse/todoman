@@ -4,8 +4,15 @@ Changelog
 This file contains a brief summary of new features and dependency changes or
 releases, in reverse chronological order.
 
+v3.9.0
+------
+
+* Drop support for Python < 3.6.
+* Add support for Python 3.9.
+
+
 v3.8.0
-----------
+------
 * Don't display list if there's only one list (of one list has been specified).
 * Fixed several issues when using dates with no times.
 * Dropped support for Python 3.4.
