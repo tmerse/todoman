@@ -15,6 +15,7 @@ from todoman import formatters
 from todoman.configuration import ConfigurationException
 from todoman.configuration import load_config
 from todoman.interactive import TodoEditor
+from todoman.interactive_editor import edit_in_editor
 from todoman.model import cached_property
 from todoman.model import Database
 from todoman.model import Todo
@@ -372,17 +373,19 @@ def new(ctx, summary, list, todo_properties, read_description, interactive):
     if read_description:
         todo.description = "\n".join(sys.stdin)
 
-    if interactive or (not summary and interactive is None):
-        ui = TodoEditor(todo, ctx.db.lists(), ctx.ui_formatter)
-        ui.edit()
-        click.echo()  # work around lines going missing after urwid
+    if ctx.config["main"]["use_editor"] and ctx.config["main"]["use_editor"] == "y" :
+        edit_in_editor(todo, ctx.db.lists(), ctx.ui_formatter)
+    else:
+        if interactive or (not summary and interactive is None):
+            ui = TodoEditor(todo, ctx.db.lists(), ctx.ui_formatter)
+            ui.edit()
+            click.echo()  # work around lines going missing after urwid
 
     if not todo.summary:
         raise click.UsageError("No SUMMARY specified")
 
     ctx.db.save(todo)
     click.echo(ctx.formatter.detailed(todo))
-
 
 @cli.command()
 @pass_ctx
@@ -394,6 +397,7 @@ def new(ctx, summary, list, todo_properties, read_description, interactive):
         "Only use this if you REALLY know what you're doing!"
     ),
 )
+
 @_todo_property_options
 @_interactive_option
 @with_id_arg
@@ -414,7 +418,9 @@ def edit(ctx, id, todo_properties, interactive, raw):
             changes = True
             setattr(todo, key, value)
 
-    if interactive or (not changes and interactive is None):
+    if ctx.config["main"]["use_editor"] and ctx.config["main"]["use_editor"] == "y" :
+        edit_in_editor(todo, ctx.db.lists(), ctx.ui_formatter)
+    elif interactive or (not changes and interactive is None):
         ui = TodoEditor(todo, ctx.db.lists(), ctx.ui_formatter)
         ui.edit()
 
@@ -425,7 +431,6 @@ def edit(ctx, id, todo_properties, interactive, raw):
     if old_list != new_list:
         ctx.db.move(todo, new_list=new_list, from_list=old_list)
     click.echo(ctx.formatter.detailed(todo))
-
 
 @cli.command()
 @pass_ctx

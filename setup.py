@@ -21,6 +21,7 @@ setup(
         "parsedatetime",
         "python-dateutil",
         "pyxdg",
+        "ruamel.yaml",
         "tabulate",
         "urwid",
     ],
