@@ -373,7 +373,7 @@ def new(ctx, summary, list, todo_properties, read_description, interactive):
     if read_description:
         todo.description = "\n".join(sys.stdin)
 
-    if ctx.config["main"]["use_editor"] and ctx.config["main"]["use_editor"] == "y" :
+    if ctx.config["main"] and ctx.config["main"].get("use_editor") and ctx.config["main"]["use_editor"]  == "y" :
         edit_in_editor(todo, ctx.db.lists(), ctx.ui_formatter)
     else:
         if interactive or (not summary and interactive is None):
@@ -418,7 +418,7 @@ def edit(ctx, id, todo_properties, interactive, raw):
             changes = True
             setattr(todo, key, value)
 
-    if ctx.config["main"]["use_editor"] and ctx.config["main"]["use_editor"] == "y" :
+    if ctx.config["main"] and ctx.config["main"].get("use_editor") and ctx.config["main"]["use_editor"]  == "y" :
         edit_in_editor(todo, ctx.db.lists(), ctx.ui_formatter)
     elif interactive or (not changes and interactive is None):
         ui = TodoEditor(todo, ctx.db.lists(), ctx.ui_formatter)

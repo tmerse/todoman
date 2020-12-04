@@ -6,6 +6,9 @@ import os
 import ruamel.yaml
 yaml = ruamel.yaml.YAML()
 
+import sys
+from pprint import pprint
+
 YAML_STR = """\
 summary: summary
 description: description
@@ -14,7 +17,7 @@ start: start
 due: due                        # %(date)s
 completed: completed
 priority: priority              # low, medium, high, none
-list: list
+list: list                      # %(lists)s
 """
 
 # credit: https://chase-seibert.github.io/blog/2012/10/31/python-fork-exec-vim-raw-input.html
@@ -44,7 +47,7 @@ def get_editor():
             or os.environ.get('EDITOR')
             or 'vi')
 
-def save_todo(todo, updated_todo, formatter):
+def save_todo(todo, updated_todo, formatter, lists):
     '''Save todo'''
     todo.summary = updated_todo["summary"]
     todo.description = updated_todo["description"]
@@ -58,14 +61,26 @@ def save_todo(todo, updated_todo, formatter):
         todo.completed_at = None
     todo.priority = formatter.parse_priority(updated_todo["priority"])
 
+    todo_index = next((index for (index, d) in enumerate(lists) if d.name == updated_todo["list"]), None)
+    todo.list = lists[todo_index]
+
+
 def edit_in_editor(todo, lists, formatter):
     '''Edit todo in editor as yaml'''
+    todo_lists = list(lists)
+
     todo_yaml_str = YAML_STR
-    for _list in list(lists):
+    #  for _list in (todo_lists):
+    #      if not any(char.isdigit() for char in _list.name):
+    #          todo_yaml_str += "# list: " + _list.name + "\n"
+
+    list_suggestions = ""
+    for _list in (todo_lists):
         if not any(char.isdigit() for char in _list.name):
-            todo_yaml_str += "# list: " + _list.name + "\n"
+            list_suggestions += _list.name + ", "
+
     #  yaml_todo = yaml.load(todo_yaml_str)
-    yaml_todo = yaml.load(todo_yaml_str % {'date': humanize.naturaldate(todo.due) or 'e.g. 2020-11-09 12:30' })
+    yaml_todo = yaml.load(todo_yaml_str % {'date': humanize.naturaldate(todo.due) or 'e.g. 2020-11-09 12:30', 'lists': list_suggestions[:-2]})
 
     yaml_todo["summary"] = todo.summary or None
     yaml_todo["description"] = todo.description or None
@@ -79,4 +94,4 @@ def edit_in_editor(todo, lists, formatter):
     result = raw_input_editor(yaml_todo)
     updated_todo = yaml.load(result)
 
-    save_todo(todo, updated_todo, formatter)
+    save_todo(todo, updated_todo, formatter, todo_lists)
